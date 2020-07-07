@@ -44,7 +44,7 @@ library SafeMath {
     }
 }
 
-/***====================== ERC20 implementation =============================================================***/ 
+/***====================== ERC20 implementation =====================================================***/ 
 contract ERC20 is iERC20 {
     using SafeMath for uint256;
     mapping (address => uint256) private _balances;
@@ -115,14 +115,13 @@ contract ERC20 is iERC20 {
     }
 }
 
-/*** reentrancy =====================================================================***/
+/***======== re-entrancy ================================================================***/
 contract ReentrancyGuard {
     uint256 private _guardCounter;
     constructor() public {
         _guardCounter = 1;
     }
-    
-/*** make the `nonReentrant function external, and make it call a private function. ***/
+/*** make the nonReentrant function external, and make it call a private function. ***/
     modifier nonReentrant() {
         _guardCounter += 1;
         uint256 localCounter = _guardCounter;
@@ -130,40 +129,35 @@ contract ReentrancyGuard {
         require(localCounter == _guardCounter);
     }
 }
-
-///  ERC721 to ERC20. Lock and Mint, Unlock and Burn
-///  Remove/Add Token number fungiblity.  
-
     event deopsitAndMintTokens(
-        uint256 Id
+        uint256 id
     );
-
     event burnTokensAndWithdraw(
-        uint256 Id
+        uint256 id
     );
 
     uint256[] private depositedArray;
-    mapping (uint256 => bool) private IsDepositedInContract;
+    mapping (uint256 => bool) private isInContract;
     uint8 constant public decimals = 18;
-    string constant public name = "Wrapped";
+    string constant public name = "wrapped";
     string constant public symbol = "RAP";
-    address public coreAddress = 0x0123456789abcdefghijklmnopqrstuvwxyzABCD;
-    NFT nFT;
+    address public erc721Address = 0x0123456789abcdefghijklmnopqrstuvwxyzABCD;
+    erc721 NFT; // per specific nft core contract 
 
-    function depositAndMintTokens(uint256[] calldata _Ids) external nonReentrant {
+    function depositMint(uint256[] calldata _ids) external nonReentrant {
         require(_Ids.length > 0, 'array can not be empty');
         for(uint i = 0; i < _Ids.length; i++){
             uint256 toDeposit = _Ids[i];
-            require(msg.sender == nFT.ownerOf(toDeposit), 'you must own the nft');
-            require(nFT.indexToApproved(toDeposit) == address(this), 'you must approve() this contract');
-            nFT.transferFrom(msg.sender, address(this), toDeposit);
+            require(msg.sender == NFT.ownerOf(toDeposit), 'you must own the nft');
+            require(NFT.indexToApproved(toDeposit) == address(this), 'you must approve() this contract');
+            NFT.transferFrom(msg.sender, address(this), toDeposit);
             _push(toDeposit);
-            emit depositAndMintToken(toDeposit);
+            emit depositMint(toDeposit);
         }
         _mint(msg.sender, (_Ids.length).mul(10**18));
     }
 
-    function burnTokensAndWithdraw(uint256[] calldata _Ids, address[] calldata _destinationAddresses) external nonReentrant {
+    function withdrawBurn(uint256[] calldata _Ids, address[] calldata _destinationAddresses) external nonReentrant {
         require(_Ids.length == _destinationAddresses.length, 'you did not provide a destination address for withdraw');
         require(_Ids.length > 0, 'array can not be empty');
 
